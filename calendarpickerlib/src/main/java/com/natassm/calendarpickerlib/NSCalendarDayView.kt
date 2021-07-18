@@ -15,12 +15,9 @@ class NSCalendarDayView @JvmOverloads constructor (context: Context, attrs: Attr
 
     init {
         orientation = HORIZONTAL
-        LayoutInflater.from(context).inflate(R.layout.view_calendar_day, this, true)
     }
 
     fun setUpData(entity: NSCalendarEntity) {
-        binding.dayTextView
-
-        NSUIHelper.convertLongToPatternTime("dd", entity.time)
+        binding.dayTextView.text = NSUIHelper.convertLongToPatternTime("dd", entity.time)
     }
 }

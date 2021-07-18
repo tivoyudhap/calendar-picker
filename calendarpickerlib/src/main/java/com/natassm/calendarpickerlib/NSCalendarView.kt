@@ -22,10 +22,9 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
     }
 
     fun drawBaseView() {
-
         val layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
         removeAllViews()
-
+        generateDateView()
         list.forEach {
             val calendarWeekView = NSCalendarWeekView(context)
             calendarWeekView.layoutParams = layoutParams
@@ -81,10 +80,10 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
 
             val calendarEntity = NSCalendarEntity(calendar.timeInMillis)
 
-            if (NSUIHelper.convertLongToPatternTime("EEEE", calendar.timeInMillis) == "Minggu") {
-                val groupEntity = NSGroupEntity()
-                groupEntity.calendarList.add(calendarEntity)
-                list.add(groupEntity)
+            if (NSUIHelper.convertLongToPatternTime("EEEE", calendar.timeInMillis).equals("Minggu", ignoreCase = true)) {
+                val tempGroupEntity = NSGroupEntity()
+                tempGroupEntity.calendarList.add(calendarEntity)
+                list.add(tempGroupEntity)
             } else {
                 list.last().calendarList.add(calendarEntity)
             }

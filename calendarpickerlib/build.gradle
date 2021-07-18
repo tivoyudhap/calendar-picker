@@ -1,5 +1,5 @@
 plugins {
-    id 'com.android.application'
+    id 'com.android.library'
     id 'kotlin-android'
     id 'kotlin-parcelize'
 }
@@ -8,7 +8,6 @@ android {
     compileSdkVersion 30
 
     defaultConfig {
-        applicationId "com.natassm.calendarpickerlib"
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
