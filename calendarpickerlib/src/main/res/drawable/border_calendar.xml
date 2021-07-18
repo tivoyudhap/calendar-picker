@@ -7,7 +7,7 @@
     </item>
     <item android:state_activated="true">
         <shape>
-            <stroke android:color="@color/blue" android:width="1dp"/>
+            <stroke android:color="@color/maroon" android:width="1dp"/>
         </shape>
     </item>
 </selector>
