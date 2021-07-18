@@ -37,6 +37,7 @@ class NSCalendarDayView @JvmOverloads constructor (context: Context, attrs: Attr
     fun setUpData(entity: NSDayEntity) {
         this.entity = entity
         binding.calendarItemDateTextView.setTextColor(ContextCompat.getColor(context, if (entity.isActive) R.color.black else R.color.dark_grey))
+        binding.calendarItemBaseConstraint.isActivated = entity.isSelected
 
         binding.calendarItemDateTextView.alpha = if (entity.isActiveMonth) 1f else 0.5f
         binding.calendarItemDateTextView.text = NSUIHelper.convertLongToPatternTime(DATE_ONLY, entity.time).toInt().toString()

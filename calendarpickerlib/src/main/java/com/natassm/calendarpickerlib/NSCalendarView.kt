@@ -13,7 +13,14 @@ import java.util.*
 
 class NSCalendarView @JvmOverloads constructor (context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0): LinearLayout(context, attrs, defStyleAttr) {
 
+    companion object {
+        const val CALENDAR_SINGLE_PICKER = 1
+        const val CALENDAR_RANGE_PICKER = 2
+    }
+
     private val list: MutableList<NSWeekEntity> = mutableListOf()
+    private var startTime: Long = 0
+    private var endTime: Long? = null
     var eventList: MutableList<Long> = mutableListOf()
         set(eventList) {
             field = eventList
@@ -21,6 +28,8 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
         }
     var selectedDate: Long = Date().time
     var listener: NSOnCalendarClicked? = null
+    var type: Int = CALENDAR_SINGLE_PICKER
+
     private val itemListener: NSOnCalendarClicked = object : NSOnCalendarClicked {
         override fun itemClicked(data: NSDayEntity) {
             if (data.isActiveMonth) {
@@ -31,8 +40,27 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
                     }
                 }
 
+                if (type == CALENDAR_SINGLE_PICKER) {
+                    endTime = null
+                    startTime = data.time
+                    listener?.itemClicked(data)
+                } else {
+                    if (endTime != null) {
+                        startTime = data.time
+                        endTime = null
+                    } else {
+                        if (data.time < startTime) {
+                            startTime = data.time
+                        } else {
+                            endTime = data.time
+                        }
+                    }
+
+                    listener?.itemClicked(data)
+                }
+
+                mapSelection()
                 drawBaseView()
-                listener?.itemClicked(data)
             }
         }
     }
@@ -64,6 +92,17 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
         }
 
         drawBaseView()
+    }
+
+    private fun mapSelection() {
+        list.forEach { weekEntity ->
+            weekEntity.weekList.forEach { dayEntity ->
+                dayEntity.isSelected = dayEntity.time == startTime
+                endTime?.let { endTime ->
+                    dayEntity.isSelected = dayEntity.time in startTime..endTime
+                }
+            }
+        }
     }
 
     private fun generateDateView() {

@@ -10,5 +10,6 @@ data class NSDayEntity (
     var isHoliday: Boolean = false,
     var isActive: Boolean = false,
     var isActiveMonth: Boolean = false,
-    var hasEvent: Boolean = false
+    var hasEvent: Boolean = false,
+    var isSelected: Boolean = false
 ) : Parcelable
