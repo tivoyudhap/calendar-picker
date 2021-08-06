@@ -4,23 +4,29 @@ import android.content.Context
 import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import com.natassm.calendarpickerlib.databinding.CalendarContainerViewBinding
 import com.natassm.calendarpickerlib.entity.NSDayEntity
 import com.natassm.calendarpickerlib.entity.NSWeekEntity
 import java.util.*
 
-class NSCalendarView @JvmOverloads constructor (context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0): LinearLayout(context, attrs, defStyleAttr) {
+class NSCalendarView @JvmOverloads constructor (context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0): LinearLayout(context, attrs, defStyleAttr), View.OnClickListener {
 
     companion object {
         const val CALENDAR_SINGLE_PICKER = 1
         const val CALENDAR_RANGE_PICKER = 2
     }
 
+    private val binding: CalendarContainerViewBinding by lazy { CalendarContainerViewBinding.inflate(LayoutInflater.from(context), this, true) }
+
     private val list: MutableList<NSWeekEntity> = mutableListOf()
     private var startTime: Long = 0
     private var endTime: Long? = null
+    private var calendar: Calendar = Calendar.getInstance()
     var eventList: MutableList<Long> = mutableListOf()
         set(eventList) {
             field = eventList
@@ -66,13 +72,36 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
     }
 
     init {
-        orientation = VERTICAL
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        calendar.set(Calendar.MILLISECOND, 0)
+        binding.calendarLeftImageView.setOnClickListener(this)
+        binding.calendarRIghtImageView.setOnClickListener(this)
+
         generateCalendarEvent()
         drawBaseView()
     }
 
+    override fun onClick(p0: View?) {
+        when (p0?.id) {
+            R.id.calendarLeftImageView -> {
+                calendar.add(Calendar.MONTH, -1)
+                generateCalendarEvent()
+                drawBaseView()
+            }
+            R.id.calendarRIghtImageView -> {
+                calendar.add(Calendar.MONTH, +1)
+                generateCalendarEvent()
+                drawBaseView()
+            }
+        }
+    }
+
     private fun drawBaseView() {
-        removeAllViews()
+        binding.calendarLinearLayout.removeAllViews()
+        binding.calendarNameTextView.text = getMonthName()
+
         generateDateView()
         for (entity in list) {
             val baseHorizontalLinearLayout = NSCalendarWeekView(context)
@@ -80,8 +109,18 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
             baseHorizontalLinearLayout.drawView(entity.weekList)
             baseHorizontalLinearLayout.gravity = Gravity.CENTER_VERTICAL
             baseHorizontalLinearLayout.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
-            addView(baseHorizontalLinearLayout)
+            binding.calendarLinearLayout.addView(baseHorizontalLinearLayout)
         }
+    }
+
+    private fun getMonthName(): String {
+        list.forEach {
+            it.weekList.firstOrNull { NSUIHelper.convertLongToPatternTime("dd", it.time).equals("01", ignoreCase = true) }?.let {
+                return NSUIHelper.convertLongToPatternTime("MMMM yyyy", it.time)
+            }
+        }
+
+        return ""
     }
 
     private fun mapEvent() {
@@ -132,15 +171,11 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
             horizontalDayLinearLayout.addView(textView)
         }
 
-        addView(horizontalDayLinearLayout)
+        binding.calendarLinearLayout.addView(horizontalDayLinearLayout)
     }
 
     private fun generateCalendarEvent() {
-        val calendar = Calendar.getInstance()
-        calendar.set(Calendar.HOUR_OF_DAY, 0)
-        calendar.set(Calendar.MINUTE, 0)
-        calendar.set(Calendar.SECOND, 0)
-        calendar.set(Calendar.MILLISECOND, 0)
+        list.clear()
 
         val savedMonth = calendar.get(Calendar.MONTH)
         var firstDateInterval = 0
@@ -171,27 +206,32 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
             calendar.add(Calendar.DATE, 1)
         }
 
+        calendar.add(Calendar.MONTH, -1)
         calendar.set(Calendar.DATE, 1)
+
+        val previousCalendar = Calendar.getInstance()
+        previousCalendar.timeInMillis = calendar.timeInMillis
         for (a in 0 until firstDateInterval) {
             if (a == 0) {
-                calendar.add(Calendar.MONTH, -1)
+                previousCalendar.add(Calendar.MONTH, -1)
             }
 
-            calendar.add(Calendar.DATE, -1)
-            list.first().weekList.add(0, NSDayEntity(time = calendar.timeInMillis, isHoliday = NSUIHelper.convertLongToPatternTime(
-                DATE_DAY_ONLY, calendar.timeInMillis).equals("Sabtu", ignoreCase = true) or NSUIHelper.convertLongToPatternTime(
-                DATE_DAY_ONLY, calendar.timeInMillis).equals("Minggu", ignoreCase = true), isActive = false)
+            previousCalendar.add(Calendar.DATE, -1)
+            list.first().weekList.add(0, NSDayEntity(time = previousCalendar.timeInMillis, isHoliday = NSUIHelper.convertLongToPatternTime(
+                DATE_DAY_ONLY, previousCalendar.timeInMillis).equals("Sabtu", ignoreCase = true) or NSUIHelper.convertLongToPatternTime(
+                DATE_DAY_ONLY, previousCalendar.timeInMillis).equals("Minggu", ignoreCase = true), isActive = false)
             )
         }
 
-        calendar.set(Calendar.MONTH, savedMonth + 1)
-        calendar.set(Calendar.DATE, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
+        val nextCalendar = Calendar.getInstance()
+        nextCalendar.timeInMillis = calendar.timeInMillis
+        nextCalendar.add(Calendar.MONTH, 1)
         for (a in 0 until lastDateInterval(list.last().weekList.last().time)) {
-            calendar.add(Calendar.DATE, 1)
+            nextCalendar.add(Calendar.DATE, 1)
             list.last().weekList.add(
-                NSDayEntity(time = calendar.timeInMillis, isHoliday = NSUIHelper.convertLongToPatternTime(
-                DATE_DAY_ONLY, calendar.timeInMillis).equals("Sabtu", ignoreCase = true) or NSUIHelper.convertLongToPatternTime(
-                DATE_DAY_ONLY, calendar.timeInMillis).equals("Minggu", ignoreCase = true), isActive = false)
+                NSDayEntity(time = nextCalendar.timeInMillis, isHoliday = NSUIHelper.convertLongToPatternTime(
+                DATE_DAY_ONLY, nextCalendar.timeInMillis).equals("Sabtu", ignoreCase = true) or NSUIHelper.convertLongToPatternTime(
+                DATE_DAY_ONLY, nextCalendar.timeInMillis).equals("Minggu", ignoreCase = true), isActive = false)
             )
         }
     }
