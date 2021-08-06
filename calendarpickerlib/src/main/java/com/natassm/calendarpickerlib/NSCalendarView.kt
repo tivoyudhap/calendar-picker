@@ -27,6 +27,7 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
     private var startTime: Long = 0
     private var endTime: Long? = null
     private var calendar: Calendar = Calendar.getInstance()
+    var typeface: Typeface? = null
     var eventList: MutableList<Long> = mutableListOf()
         set(eventList) {
             field = eventList
@@ -79,6 +80,10 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
         binding.calendarLeftImageView.setOnClickListener(this)
         binding.calendarRIghtImageView.setOnClickListener(this)
 
+        typeface?.let {
+            binding.calendarNameTextView.typeface = it
+        }
+
         generateCalendarEvent()
         drawBaseView()
     }
@@ -108,6 +113,7 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
             baseHorizontalLinearLayout.listener = itemListener
             baseHorizontalLinearLayout.drawView(entity.weekList)
             baseHorizontalLinearLayout.gravity = Gravity.CENTER_VERTICAL
+            baseHorizontalLinearLayout.typeface = typeface
             baseHorizontalLinearLayout.layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
             binding.calendarLinearLayout.addView(baseHorizontalLinearLayout)
         }

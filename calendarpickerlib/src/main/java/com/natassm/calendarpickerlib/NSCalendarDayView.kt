@@ -1,6 +1,7 @@
 package com.natassm.calendarpickerlib
 
 import android.content.Context
+import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.LayoutInflater
 import android.view.View
@@ -16,6 +17,7 @@ class NSCalendarDayView @JvmOverloads constructor (context: Context, attrs: Attr
 
     private lateinit var entity: NSDayEntity
     lateinit var listener: NSOnCalendarClicked
+    var typeface: Typeface? = null
 
     private val binding: ViewCalendarDayBinding by lazy {
         ViewCalendarDayBinding.inflate(LayoutInflater.from(context), this, true)
@@ -24,6 +26,9 @@ class NSCalendarDayView @JvmOverloads constructor (context: Context, attrs: Attr
     init {
         orientation = HORIZONTAL
         binding.calendarItemBaseConstraint.setOnClickListener(this)
+        typeface?.let {
+            binding.calendarItemDateTextView.typeface = it
+        }
     }
 
     override fun onClick(p0: View?) {
