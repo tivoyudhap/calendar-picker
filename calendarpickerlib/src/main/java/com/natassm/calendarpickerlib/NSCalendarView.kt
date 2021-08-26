@@ -183,7 +183,6 @@ class NSCalendarView @JvmOverloads constructor (context: Context, attrs: Attribu
     private fun generateCalendarEvent() {
         list.clear()
 
-        val savedMonth = calendar.get(Calendar.MONTH)
         var firstDateInterval = 0
 
         calendar.set(Calendar.DATE, 1)
